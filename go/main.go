@@ -7,9 +7,16 @@ import (
 	*The libraary it self..
 	 */
 	. "fmt"
-	"math"
+	 "math"
+	 "strconv"
 )
 
+type geometry interface{
+  area() float64	
+}
+type changeToString interface{
+	String() string;
+}
 func init() {
 	Println("INITALIZED!")
 }
@@ -19,19 +26,22 @@ type animal struct {
 	name      string
 	id        float64
 }
+type square struct{
+	side float64
+}
 
 type Box struct {
-	width  float64
+	width float64
 	height float64
-	color  string
+	color string;
 }
 
 type Circle struct {
-	radius float64
+	radius float64;
 }
 type Rectangle struct {
-	width  float64
-	height float64
+	width float64;
+	height float64;
 }
 
 type person struct {
@@ -46,15 +56,16 @@ type Donkey struct {
 type student struct {
 	person
 	specality string
+	school string
 }
 
 type kindaHuman struct {
-	legs  bool
+	legs bool
 	hands bool
 }
 type alien struct {
 	kindaHuman
-	eyes  bool
+	eyes bool;
 	hands bool
 }
 
@@ -292,94 +303,160 @@ func main() {
 	Printf("The oldest person is %s and is %d years old.. \n", oldestPersonName, oldestPersonAge)
 
 	firstDonkey := Donkey{animal{numOfLegs: 3, name: "FirstDonkey", id: 3.134}, 78.12}
-	AmanuelTheStudent := student{person{name: "Amanuel", age: 15}, "Programming"}
+	AmanuelTheStudent := student{person{name: "Amanuel", age: 15}, "Programming", "MIT"}
 
 	AmanuelTheStudent.person = person{name: "Amanuel", age: 16}
 	Println("Amanuel ", AmanuelTheStudent)
 
 	Printf("The First Donkey %s and The first students %s \n", firstDonkey, AmanuelTheStudent)
-
-	firstAlien := alien{kindaHuman{true, false}, true, true}
-
+	
+	firstAlien:= alien{kindaHuman{true,false},true,true}
+	
 	//Structs multiple..
-	Println("From KindaHuman Struct..", firstAlien.kindaHuman.hands)
-	Println("From Alien Struct", firstAlien.hands)
-	/**
-	 *METHODS
-	 */
+	Println("From KindaHuman Struct..", firstAlien.kindaHuman.hands);
+	Println("From Alien Struct", firstAlien.hands);
+	Amanuel.sayHi();
+/**
+*METHODS
+*/
 
-	//Normal Method...
-	r1 := Rectangle{3.212, 4.42}
-	Println("Rectangular Area.. ", calculateRectngleStruct(r1))
+//Normal Method...
+r1 := Rectangle{3.212, 4.42};
+Println("Rectangular Area.. " , calculateRectngleStruct(r1));
+	
+//** METHODS WITH STRUCTS!!
+c1:=Circle{9};
+Println("Circle Area.. " , c1.area())
 
-	//** METHODS WITH STRUCTS!!
-	c1 := Circle{9}
-	Println("Circle Area.. ", c1.area())
+/**
+*Box Method Exercice
+*/
 
-	/**
-	 *Box Method Exercice
-	 */
+bBox := Box{2.12,3.1,"red"}
+aBox := Box{1.23,1.22,"Blue"}
+cBox:=  Box{3.32,7.54, "blue"}
+Println("Orignal Color of b " , bBox.color)
+//Going to change actual
+//Color of b Box because i 
+//used pointer on method
 
-	bBox := Box{2.12, 3.1, "red"}
-	aBox := Box{1.23, 1.22, "Blue"}
-	cBox := Box{3.32, 7.54, "blue"}
-	Println("Orignal Color of b ", bBox.color)
-	//Going to change actual
-	//Color of b Box because i
-	//used pointer on method
+bBox.setColor("White")
+Println("Changed color of b ", bBox.color);
+Println("The biggest area from all boxes is.. " , biggestAreaFromBox(aBox,bBox,cBox))
+Println("Of Color.. ", findColorFromAreaBox(biggestAreaFromBox(aBox,bBox,cBox), aBox,bBox,cBox))
+	
+//Student.
 
-	bBox.setColor("White")
-	Println("Changed color of b ", bBox.color)
-	Println("The biggest area from all boxes is.. ", biggestAreaFromBox(aBox, bBox, cBox))
-	Println("Of Color.. ", findColorFromAreaBox(biggestAreaFromBox(aBox, bBox, cBox), aBox, bBox, cBox))
+AmanuelStudent2 := student{person{"Amanuel",14}, "Programming","MIT"}
+Println(AmanuelStudent2)
+
+/**
+*Interfaces
+*/
+/*Preety tough to understand topic
+Interfaces are set of functions, so 
+you can implement them by the methods
+of the structs. It organizes your code.
+*/
+firstSquare := square{9.2143}
+firstSquare.area();
+Println("Area of first square",(firstSquare.area()));
+Println("Interface Check " , geometryInterfaceCheck(firstSquare))
+
+var squareFromInterface geometry;
+squareFromInterface = firstSquare;
+Println("Interface-Square ", squareFromInterface)
+
+ firstSliceSquare:= square{2.12}
+ secondSliceSquare :=square{1.12}
+ thirdSliceSquare :=square{10};
+
+squareSlice := make([]geometry , 3);
+squareSlice[0] = firstSliceSquare;
+squareSlice[1] = secondSliceSquare;
+squareSlice[3] = thirdSliceSquare
+Println("Slices ",  firstSliceSquare)
+Println(secondSliceSquare);
+Println(thirdSliceSquare);
+
+//Define Empty Interface..
+var emptyInterface interface{}
+var iInt int = 3;
+//emptyInterface can store any type
+emptyInterface = iInt;
+Println("Empty Interface " , emptyInterface);
+
+var intNonConverted int = 3;
+var intConverted string;
+intConverted = strconv.Itoa(intNonConverted)
+Println("Converted ... ", intConverted);
+
+
 
 	/**
 	 *PANIC
 	 */
+	 Println("*********************************")
 	userPanicExample := ""
 	panicExample(userPanicExample)
 
 }
 
-func printLine()                        { Println("Hello There... Im last for some reason..") }
-func addNumbers(num1 int, num2 int) int { return num1 + num2 }
+func (s square) area() float64{
+	return math.Pow(s.side, 2);
+}
+func geometryInterfaceCheck(g geometry) geometry{
+	return g;
+}
+func printLine(){
+	Println("Hello There... Im last for some reason..") 
+}
+func addNumbers(num1 int, num2 int) int {
+	return num1 + num2 
+}
 
 func test(a int) int {
 	a = 5
 	return a
 }
 
-func (b *Box) setColor(colorToSetTo string) {
-	b.color = colorToSetTo
+
+func (b *Box) setColor(colorToSetTo string){
+	 b.color = colorToSetTo;
 }
-func (b Box) findArea() float64 {
-	return b.width * b.height
+func (b Box) findArea() float64{
+	return b.width * b.height;
 }
-func findColorFromAreaBox(area float64, b ...Box) string {
-	var colorOfArea string = ""
-	for i := 0; i <= len(b)-1; i++ {
-		if (b[i].height * b[i].width) == area {
+func findColorFromAreaBox(area float64, b ... Box) string{
+	var colorOfArea string = "";
+	for i:=0; i<=len(b)-1;i++{
+		if((b[i].height*b[i].width) == area){
 			colorOfArea = b[i].color
 		}
 	}
-	return colorOfArea
+	return colorOfArea;
 }
-func biggestAreaFromBox(b ...Box) float64 {
+func biggestAreaFromBox(b ...Box) float64{
 	Println(b)
-	var biggestArea float64 = 0
-
-	for i := 0; i <= len(b)-1; i++ {
-		var currentWidth float64 = b[i].width
-		var currentHeight float64 = b[i].height
-		if (currentWidth * currentHeight) > biggestArea {
-			biggestArea = (b[i].width * b[i].height)
-		}
-	}
-	return biggestArea
+	  var biggestArea float64= 0;
+	  
+	  for i:=0; i<=len(b)-1;i++{
+	  	var currentWidth float64 = b[i].width
+	  	var currentHeight float64 = b[i].height
+		if((currentWidth*currentHeight)>biggestArea){
+	 		biggestArea = (b[i].width*b[i].height);
+	 	}
+	 }
+	return biggestArea;
 }
+
+func (p *person) sayHi(){
+	Println("Hello!")
+}
+
 
 func (c Circle) area() float64 {
-	return c.radius * c.radius * math.Pi
+    return c.radius * c.radius * math.Pi
 }
 
 func getStructDiffrenceTwo(p1 person, p2 person) (person, int, person) {
@@ -425,8 +502,8 @@ func panicExample(user string) {
 
 }
 
-func calculateRectngleStruct(r Rectangle) float64 {
-	return r.width * r.height
+func calculateRectngleStruct(r Rectangle) float64{
+	return r.width*r.height;
 }
 func deferExample() {
 	Println("DEFERED!")
