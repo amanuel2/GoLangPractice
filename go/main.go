@@ -9,6 +9,7 @@ import (
 	. "fmt"
 	"math"
 	"strconv"
+	"time"
 )
 
 type geometry interface {
@@ -16,6 +17,8 @@ type geometry interface {
 }
 type changeToString interface {
 	String() string
+}
+type readerAndWriter interface {
 }
 
 func init() {
@@ -68,6 +71,12 @@ type alien struct {
 	kindaHuman
 	eyes  bool
 	hands bool
+}
+
+func say(str string) {
+	for i := 0; i < 10; i++ {
+		Println(str)
+	}
 }
 
 func main() {
@@ -228,7 +237,7 @@ func main() {
 	switch x {
 	case 6:
 		Println("Something")
-		break
+		fallthrough
 	default:
 		Println("Wtf..")
 		break
@@ -352,6 +361,67 @@ func main() {
 	Println(AmanuelStudent2)
 
 	/**
+	*Concurrency
+	 */
+	//**GO ROUTINES
+	//A goroutine is a function that is capable of
+	//running concurrently with other functions.
+	go say("Hello")
+	say("World")
+	/*
+	  var input string
+	  Scanln(&input)
+	*/
+	//Scanln not needed because there is a
+	//panic at the end
+
+	//**CHANNELS
+	var c chan string = make(chan string)
+	go pinger(c)
+	go ponger(c)
+	go sayPingPong(c)
+	var input string
+	Scanln(&input)
+
+	c11 := make(chan string)
+	c22 := make(chan string)
+
+	go func() {
+		for i := 0; ; i++ {
+			c11 <- "From First Channel"
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	go func() {
+		for i := 0; ; i++ {
+			c22 <- "From Second Channel"
+			time.Sleep(time.Second * 3)
+		}
+	}()
+
+	go func() {
+		for i := 0; ; i++ {
+			for i := 0; ; i++ {
+				select {
+				case msg1 := <-c11:
+					Println(msg1)
+
+				case msg2 := <-c22:
+					Println(msg2)
+
+				default:
+					Println("None of the channels are ready..")
+					time.Sleep(time.Second * (1))
+				}
+			}
+		}
+	}()
+
+	var input2 string
+	Scanln(&input2)
+
+	/**
 	 *Interfaces
 	 */
 	/*Preety tough to understand topic
@@ -391,7 +461,7 @@ func main() {
 	var intConverted string
 	intConverted = strconv.Itoa(intNonConverted)
 	Println("Converted ... ", intConverted)
-
+	Println("Convertted!!")
 	/**
 	 *PANIC
 	 */
@@ -434,6 +504,12 @@ func findColorFromAreaBox(area float64, b ...Box) string {
 	}
 	return colorOfArea
 }
+func f(n int) {
+	for i := 0; i < 10; i++ {
+		Println(n, ":", i)
+	}
+}
+
 func biggestAreaFromBox(b ...Box) float64 {
 	Println(b)
 	var biggestArea float64 = 0
@@ -523,6 +599,24 @@ func circleAreaSlice(radius float64) float64 {
 	}
 	return Max[0];
 }*/
+func pinger(c chan<- string) {
+	for i := 0; ; i++ {
+		c <- "ping"
+	}
+}
+func ponger(c chan string) {
+	for i := 0; ; i++ {
+		c <- "pong"
+	}
+}
+func sayPingPong(c chan string) {
+	for {
+		message := <-c
+		Println(message)
+		time.Sleep(time.Second * 1)
+	}
+}
+
 /**
  *Multi-Value Return..
  */
