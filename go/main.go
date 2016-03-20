@@ -10,8 +10,14 @@ import (
 	"math"
 	"strconv"
 	"time"
+	"math/rand"
+	"sync"
+	"runtime"
+	"sync/atomic"
 )
-
+var counter int;
+var counterMutex int;
+var counter64 int64;
 type geometry interface {
 	area() float64
 }
@@ -77,6 +83,22 @@ func say(str string) {
 	for i := 0; i < 10; i++ {
 		Println(str)
 	}
+	wg.Done();
+}
+
+var wg sync.WaitGroup;
+var mutex sync.Mutex;
+
+
+func init(){
+	/**
+	*Runtime..
+	*/
+	//Default all go routines run on
+	//one CPU,(The default). But now
+	//You can set the MAX, also the MIN.
+	//Brings Parrelisim...
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func main() {
@@ -366,6 +388,8 @@ func main() {
 	//**GO ROUTINES
 	//A goroutine is a function that is capable of
 	//running concurrently with other functions.
+	//Add the goroutines...
+	wg.Add(13);
 	go say("Hello")
 	say("World")
 	/*
@@ -380,8 +404,7 @@ func main() {
 	go pinger(c)
 	go ponger(c)
 	go sayPingPong(c)
-	var input string
-	Scanln(&input)
+	
 
 	c11 := make(chan string)
 	c22 := make(chan string)
@@ -391,6 +414,7 @@ func main() {
 			c11 <- "From First Channel"
 			time.Sleep(time.Second * 1)
 		}
+		wg.Done();
 	}()
 
 	go func() {
@@ -398,6 +422,7 @@ func main() {
 			c22 <- "From Second Channel"
 			time.Sleep(time.Second * 3)
 		}
+		wg.Done();
 	}()
 
 	go func() {
@@ -416,10 +441,85 @@ func main() {
 				}
 			}
 		}
+		wg.Done();
 	}()
 
-	var input2 string
-	Scanln(&input2)
+	
+	//Buffered Channels..
+	/*
+	 Normally channels are synchronous; 
+	 both sides of the channel will wait until the other 
+	 side is ready. A buffered channel is asynchronous; 
+	 sending or receiving a message will not wait unless 
+	 the channel is already full.
+	*/
+	
+	NonBuffered:=make(chan string);
+  buffered:=make(chan string, 20);
+  
+  go func(){
+    for i:=0;;i++{
+        NonBuffered <- "Hello"
+    }
+    wg.Done();
+  }()
+  
+  go func(){
+    for i:=0;i<=19;i++{
+        buffered <- "World"
+    }  
+    wg.Done();
+  }()
+  
+  go func(){
+      for i:=0;i<=19;i++{
+          msg2 := <- buffered
+          Println(msg2)
+          time.Sleep(time.Second *1)
+      }
+      wg.Done();
+  }()
+  
+  go func(){
+    for i:=0;;i++{
+        msg := <-NonBuffered
+        Println(msg)
+        time.Sleep(time.Second *1);
+    }  
+    wg.Done();
+  }()
+  
+  /**
+  *RACEING
+  */
+  //Basically runs without knowing 
+  //The other function changed the value of
+  //counter... Runs simultanesoluy..
+  //This is because there is no Mutex
+  //Implmented to it..
+  //So the counter dosent go to 40..
+  	go incrementorNoMutex("Foo:")
+	go incrementorNoMutex("Bar:")
+	
+	
+	Println("Final Counter:", counter)
+	
+	//With mutex as explained above..
+	//incrementorWithMutex
+	
+	go incrementorWithMutex("MutexFoo:")
+	go incrementorWithMutex("MutexBar:")
+	
+	
+	//IncrementorWithAtomic
+	//atomic package does the same
+	//Thing as Mutex...
+	
+	go incrementorWithAtomic("AtomicFoo:")
+	go incrementorWithAtomic("AtomiBar:")
+	
+	var input string;
+	Scanln(&input)
 
 	/**
 	 *Interfaces
@@ -559,6 +659,36 @@ func itterateStructDiffrenceTotal(p ...person) int {
 	}
 	return amount
 }
+func incrementorNoMutex(s string) {
+	for i := 0; i < 20; i++ {
+		x := counter
+		x++
+		time.Sleep(time.Duration(rand.Intn(3)) * time.Millisecond)
+		counter = x
+		Println(s, i, "Counter:", counter)
+	}
+	wg.Done()
+}
+func incrementorWithMutex(s string) {
+	for i := 0; i < 20; i++ {
+		time.Sleep(time.Duration(rand.Intn(3)) * time.Millisecond)
+		mutex.Lock();
+		x := counterMutex
+		x++
+		counterMutex = x
+		mutex.Unlock();
+		Println(s, i, "Counter:", counterMutex)
+	}
+	wg.Done()
+}
+func incrementorWithAtomic(str string){
+	for i:=0;i<=20;i++{
+		time.Sleep(time.Duration(rand.Intn(3)) * time.Millisecond)
+		atomic.AddInt64(&counter64, 1)
+		Println(str,i, "Counter ", counter64)
+	}
+	wg.Done();
+}
 func test2(a *int) int {
 	*a = 5
 	return *a
@@ -603,11 +733,13 @@ func pinger(c chan<- string) {
 	for i := 0; ; i++ {
 		c <- "ping"
 	}
+	wg.Done();
 }
 func ponger(c chan string) {
 	for i := 0; ; i++ {
 		c <- "pong"
 	}
+	wg.Done();
 }
 func sayPingPong(c chan string) {
 	for {
@@ -615,6 +747,7 @@ func sayPingPong(c chan string) {
 		Println(message)
 		time.Sleep(time.Second * 1)
 	}
+	wg.Done();
 }
 
 /**
