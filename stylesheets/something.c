@@ -1,3 +1,3 @@
-init main(){
+int main(){
 //MAINCODE
 }
